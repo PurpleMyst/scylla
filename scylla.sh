@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 export OUTPUT_DIR=$(realpath "sd-$(date '+%Y-%m-%d')")
-export ASSET_DIR=$(realpath "$(mktemp -d -t dumbfuck_assets.XXX)")
+export ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
 
 echo_level() {
     for _ in $(seq 1 $1); do
