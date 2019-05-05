@@ -23,6 +23,23 @@ files you don't want to run non-executable. You can use `chmod +x FILE` or
 Then, just run `./scylla.sh`, wait a bit, and magically an
 `sd-YEAR-MONTH-DAY/` directory will have appeared.
 
+## Rate Limiting Errors
+
+If you're getting rate limiting errors, which admittedly is pretty rare unless
+you're developing this thing, there exists the option to increase your rate
+limit from 60 requests/hour to 5000.
+
+The first way is to set the enviroment variable `GITHUB_USERNAME` to your GitHub
+username. This uses basic HTTP authorization to send GitHub your username such
+that it knows who the requests are coming from. You can read up on this method
+[here](https://developer.github.com/v3/#basic-authentication).
+
+The second way is to set the enviroment variable `GITHUB_OAUTH_TOKEN` to a
+GitHub API OAuth2 token. This sends that token as an header when making
+requests so that it knows who the requests are coming from. You can read up on
+this method and on how to generate a token
+[here](https://developer.github.com/v3/#oauth2-token-sent-in-a-header).
+
 ## Special Thanks
 
 Special thanks to `Toph` on the HBG Discord for helping me out with this and

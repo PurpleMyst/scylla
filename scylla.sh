@@ -18,11 +18,23 @@ download_latest_assets() {
         exit 1
     fi
 
-    local release_url="https://api.github.com/repos/$1/$2/releases/latest"
-    local release_info=$(wget --content-on-error=on -qO- "$release_url")
+    if [ -n "$GITHUB_OAUTH_TOKEN" ]; then
+        local wget_flags="--header='Authorization: token $GITHUB_OAUTH_TOKEN'"
+    fi
+
+    if [ -z "$GITHUB_OAUTH_TOKEN" -a -n "$GITHUB_USERNAME" ]; then
+        local release_url="https://$GITHUB_USERNAME:@api.github.com/repos/$1/$2/releases/latest"
+    else
+        local release_url="https://api.github.com/repos/$1/$2/releases/latest"
+    fi
+
+    local release_info=$(wget $wget_flags --content-on-error=on -qO- "$release_url")
 
     if jq -r ".message" <<< $release_info | grep -q "rate limit"; then
         echo_level 2 "Github API rate limit reached!"
+        if [ -z "$GITHUB_OAUTH_TOKEN" -a -z "$GITHUB_USERNAME" ]; then
+            echo_level 3 "Look at README.md for instructions on how to raise the limit"
+        fi
         exit 1
     fi
 
