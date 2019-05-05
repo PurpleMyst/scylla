@@ -35,6 +35,14 @@ download_latest_assets() {
 }
 export -f download_latest_assets
 
+check_devkitpro() {
+    if [ -z "$DEVKITPRO" ]; then
+        echo_level 0 "Could not find DevKitPro, please install it to run the selected modules."
+        exit 1
+    fi
+}
+export -f check_devkitpro
+
 main() {
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
     rm -rf $OUTPUT_DIR
@@ -42,7 +50,13 @@ main() {
 
     modules=$(find modules -type f -executable -exec realpath {} \; | sort)
     cd $ASSET_DIR
-    echo $modules | xargs -n1 sh
+    for module in $modules; do
+        $module
+
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+    done
 }
 
 main

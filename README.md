@@ -8,8 +8,11 @@ Switch Hacking.
 `scylla` parses JSON to download GitHub releases and parses a GBATemp thread to
 download IPS patches, so it requires shell tools for both of those tasks.
 
+It also uses DevKitPro to compile some of the system modules.
+
 - jq ( https://stedolan.github.io/jq/ )
 - pup ( https://github.com/ericchiang/pup )
+- DevKitPro ( https://devkitpro.org/ )
 
 ## Usage
 
