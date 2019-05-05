@@ -35,13 +35,33 @@ download_latest_assets() {
 }
 export -f download_latest_assets
 
-check_devkitpro() {
+check_devkitpro_packages() {
     if [ -z "$DEVKITPRO" ]; then
-        echo_level 0 "Could not find DevKitPro, please install it to run the selected modules."
+        echo_level 1 "Could not find DevKitPro, please install it to run this module"
         exit 1
     fi
+
+    if [ -x $(command -v dkp-pacman) ]; then
+        local pacman=dkp-pacman
+    elif [ -x $(command -v pacman) ]; then
+        local pacman=pacman
+    else
+        echo_level 1 "Could not find DevKitPro pacman"
+        exit 1
+    fi
+
+    for package in $@; do
+        if ! ( $pacman -Qi $package > /dev/null 2>&1 || $pacman -Qg $package > /dev/null 2>&1 ); then
+            echo_level 1 "Could not find required DevKitPro package $package"
+            echo_level 2 "You can install it by running:"
+            echo_level 2 "$ sudo $pacman -S $package"
+            exit 1
+        else
+            echo_level 1 "Found required DevKitPro package $package"
+        fi
+    done
 }
-export -f check_devkitpro
+export -f check_devkitpro_packages
 
 main() {
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
