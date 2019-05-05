@@ -19,8 +19,12 @@ download_latest_assets() {
     fi
 
     local release_url="https://api.github.com/repos/$1/$2/releases/latest"
-    local release_info=$(wget -qO- "$release_url")
-    local release_name=$(jq -r ".name" <<< $release_info)
+    local release_info=$(wget --content-on-error=on -qO- "$release_url")
+
+    if jq -r ".message" <<< $release_info | grep -q "rate limit"; then
+        echo_level 2 "Github API rate limit reached!"
+        exit 1
+    fi
 
     local assets_url=$(jq -r ".assets_url" <<< $release_info)
     local assets_info=$(wget -qO- "$assets_url")
