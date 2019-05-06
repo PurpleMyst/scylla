@@ -1,19 +1,21 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-if [ ! -x $(command -v realpath) ]; then
+set -e
+
+if [ ! -x "$(command -v realpath)" ]; then
     echo "Could not find readpath binary"
-    if [ $(uname) == "Darwin" ]; then
+    if [ "$(uname)" = "Darwin" ]; then
         echo "You can install it from https://github.com/harto/realpath-osx"
     fi
     exit 1
 fi
 
 echo_level() {
-    for _ in $(seq 1 $1); do
+    for _ in $(seq 1 "$1"); do
         echo -n " "
     done
 
-    echo ${@:2}
+    echo "${@:2}"
 }
 export -f echo_level
 
@@ -23,34 +25,25 @@ download_latest_assets() {
         exit 1
     fi
 
-    if [ -n "$GITHUB_OAUTH_TOKEN" ]; then
-        local wget_flags="--header='Authorization: token $GITHUB_OAUTH_TOKEN'"
-    fi
+    local assets_url, assets_info, release_url, release_info
 
-    if [ -z "$GITHUB_OAUTH_TOKEN" -a -n "$GITHUB_USERNAME" ]; then
-        local release_url="https://$GITHUB_USERNAME:@api.github.com/repos/$1/$2/releases/latest"
-    else
-        local release_url="https://api.github.com/repos/$1/$2/releases/latest"
-    fi
-
+    release_url="https://api.github.com/repos/$1/$2/releases/latest"
     echo_level 2 "Getting release info"
-    local release_info=$(wget $wget_flags --content-on-error=on -O- "$release_url")
+    release_info=$(wget --content-on-error=on -O- "$release_url")
 
-    if jq -r ".message" <<< $release_info | grep -q "rate limit"; then
+    if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
         echo_level 2 "Github API rate limit reached!"
-        if [ -z "$GITHUB_OAUTH_TOKEN" -a -z "$GITHUB_USERNAME" ]; then
-            echo_level 3 "Look at README.md for instructions on how to raise the limit"
-        fi
         exit 1
     fi
 
     echo_level 2 "Getting asset info"
-    local assets_url=$(jq -r ".assets_url" <<< $release_info)
-    local assets_info=$(wget -O- "$assets_url")
+    assets_url=$(jq -r ".assets_url" <<< "$release_info")
+    assets_info=$(wget -O- "$assets_url")
 
-    for asset in $(jq -c ".[]" <<< $assets_info); do
-        local url=$(jq -r ".browser_download_url" <<< $asset)
-        local filename=$(jq -r ".name" <<< $asset)
+    for asset in $(jq -c ".[]" <<< "$assets_info"); do
+        local url, filename
+        url=$(jq -r ".browser_download_url" <<< "$asset")
+        filename=$(jq -r ".name" <<< "$asset")
 
         echo_level 2 "Downloading asset $filename"
         wget -O "$filename" "$url"
@@ -64,17 +57,17 @@ check_devkitpro_packages() {
         exit 1
     fi
 
-    if [ -x $(command -v dkp-pacman) ]; then
+    if [ -x "$(command -v dkp-pacman)" ]; then
         local pacman=dkp-pacman
-    elif [ -x $(command -v pacman) ]; then
+    elif [ -x "$(command -v pacman)" ]; then
         local pacman=pacman
     else
         echo_level 1 "Could not find DevKitPro pacman"
         exit 1
     fi
 
-    for package in $@; do
-        if ! ( $pacman -Qi $package > /dev/null 2>&1 || $pacman -Qg $package > /dev/null 2>&1 ); then
+    for package in "$@"; do
+        if ! ( $pacman -Qi "$package" > /dev/null 2>&1 || $pacman -Qg "$package" > /dev/null 2>&1 ); then
             echo_level 1 "Could not find required DevKitPro package $package"
             echo_level 2 "You can install it by running:"
             echo_level 2 "$ sudo $pacman -S $package"
@@ -87,14 +80,21 @@ check_devkitpro_packages() {
 export -f check_devkitpro_packages
 
 main() {
-    local BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
+    local BASE_OUTPUT_DIR
+    BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
 
-    test -d $BASE_OUTPUT_DIR && rm -r $BASE_OUTPUT_DIR
-    mkdir -p $BASE_OUTPUT_DIR
+    rm -rf "$BASE_OUTPUT_DIR"
+    mkdir -p "$BASE_OUTPUT_DIR"
 
-    export OUTPUT_DIR=$(realpath $BASE_OUTPUT_DIR)
-    export ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
-    export CONFIG_DIR=$(realpath config/)
+    # We must create `$BASE_OUTPUT_DIR` before giving it to `realpath` due to
+    # BSD-like platforms such as MacOS only wanting to `realpath` pre-existing
+    # folders.
+    OUTPUT_DIR=$(realpath "$BASE_OUTPUT_DIR")
+    ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
+    CONFIG_DIR=$(realpath config/)
+    export OUTPUT_DIR
+    export ASSET_DIR
+    export CONFIG_DIR
 
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
 
@@ -104,14 +104,11 @@ main() {
         local perm="/a+x"
     fi
 
-    local modules=$(find modules -type f -perm $perm -exec realpath {} \; | sort)
-    cd $ASSET_DIR
+    local modules
+    modules=$(find modules -type f -perm $perm -exec realpath {} \; | sort)
+    cd "$ASSET_DIR"
     for module in $modules; do
-        $module
-
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
+        $module || exit 1
     done
 }
 

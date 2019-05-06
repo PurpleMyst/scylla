@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 echo_level 0 "Hekate"
 
 if [ ! -x "$(command -v 7z)" ]; then

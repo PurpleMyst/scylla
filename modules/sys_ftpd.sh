@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo_level 0 "sys-ftpd"
 
 check_devkitpro_packages switch-dev switch-mpg123
