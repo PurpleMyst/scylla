@@ -95,7 +95,7 @@ main() {
 
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
 
-    local modules=$(find modules -type f -executable -exec realpath {} \; | sort)
+    local modules=$(find modules -type f -perm /a+x -exec realpath {} \; | sort)
     cd $ASSET_DIR
     for module in $modules; do
         $module
