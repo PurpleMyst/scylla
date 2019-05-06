@@ -1,5 +1,10 @@
 echo_level 0 "Hekate"
 
+if [ ! -x "$(command -v 7z)" ]; then
+    echo_level 1 "7z binary not found, exiting"
+    exit 1
+fi
+
 echo_level 1 "Downloading"
 download_latest_assets Joonie86 hekate
 

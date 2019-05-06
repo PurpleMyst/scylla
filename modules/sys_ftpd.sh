@@ -2,8 +2,8 @@ echo_level 0 "sys-ftpd"
 
 check_devkitpro_packages switch-dev switch-mpg123
 
-echo_level 1 "Downloading"
-git clone -q https://github.com/jakibaki/sys-ftpd
+echo_level 1 "Cloning"
+git clone https://github.com/jakibaki/sys-ftpd
 cd sys-ftpd
 
 echo_level 1 "Compiling"
