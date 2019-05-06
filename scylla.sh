@@ -1,7 +1,12 @@
 #!/usr/bin/env sh
 
-export OUTPUT_DIR=$(realpath "sd-$(date '+%Y-%m-%d')")
-export ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
+if [ ! -x $(command -v realpath) ]; then
+    echo "Could not find readpath binary"
+    if [ $(uname -s) == "darwin" ]; then
+        echo "You can install it from https://github.com/harto/realpath-osx"
+    fi
+    exit 1
+fi
 
 echo_level() {
     for _ in $(seq 1 $1); do
@@ -80,11 +85,17 @@ check_devkitpro_packages() {
 export -f check_devkitpro_packages
 
 main() {
-    echo_level 0 "Putting SD files into $OUTPUT_DIR"
-    rm -rf $OUTPUT_DIR
-    mkdir -p $OUTPUT_DIR
+    local BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
 
-    modules=$(find modules -type f -executable -exec realpath {} \; | sort)
+    test -d $BASE_OUTPUT_DIR && rm -r $BASE_OUTPUT_DIR
+    mkdir -p $BASE_OUTPUT_DIR
+
+    export OUTPUT_DIR=$(realpath $BASE_OUTPUT_DIR)
+    export ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
+
+    echo_level 0 "Putting SD files into $OUTPUT_DIR"
+
+    local modules=$(find modules -type f -executable -exec realpath {} \; | sort)
     cd $ASSET_DIR
     for module in $modules; do
         $module
