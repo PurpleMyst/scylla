@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 
-echo_level 0 "Hekate"
+log-info "Hekate"
 
 if [ ! -x "$(command -v 7z)" ]; then
-    echo_level 1 "7z binary not found, exiting"
-    exit 1
+    die "7z binary not found, exiting"
 fi
 
-echo_level 1 "Downloading"
+log-info "Downloading assets"
 download_latest_assets Joonie86 hekate
 
-echo_level 1 "Extracting"
-7z -y x "*hekate*.7z" -o"$OUTPUT_DIR" > /dev/null
+log-info "Extracting *hekate*.7z"
+7z -y x "*hekate*.7z" -o"$OUTPUT_DIR" || die "Could not extract *hekate*.7z"
 
-echo_level 1 "Creating KIP module dir"
+log-info "Creating \$OUTPUT_DIR/bootloader/kip-modules"
 mkdir "$OUTPUT_DIR/bootloader/kip-modules"
 
-echo_level 1 "Adding config"
+log-info "Adding \$OUTPUT_DIR/bootloader/hekate_ipl.ini"
 cp "$CONFIG_DIR/bootloader/hekate_ipl.ini" "$OUTPUT_DIR/bootloader/"

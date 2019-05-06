@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-echo_level 0 "Atmosphere"
+log-info "Atmosphere"
 
-echo_level 1 "Downloading"
+log-info "Downloading assets"
 download_latest_assets Atmosphere-NX Atmosphere
 
-echo_level 1 "Extracting"
-unzip "*atmosphere*.zip" -d "$OUTPUT_DIR"
+log-info "Extracting *atmosphere*.zip"
+unzip "*atmosphere*.zip" -d "$OUTPUT_DIR" || die "Could not extract *atmosphere*.zip"
 
-echo_level 1 "Moving fusee-primary.bin"
+log-info "Moving fusee-primary.bin"
 mkdir -p "$OUTPUT_DIR/bootloader/payloads"
 cp fusee-primary.bin "$OUTPUT_DIR/bootloader/payloads"

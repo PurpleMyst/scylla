@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 
-echo_level 0 "IPS Patches"
+THREAD_URL="https://gbatemp.net/threads/i-heard-that-you-guys-need-some-sweet-patches-for-atmosphere.521164/"
+
+log-info "IPS Patches"
 
 if [ ! -x "$(command -v pup)" ]; then
-    echo_level 1 "Could not find pup, exiting"
-    exit 1
+    die "pup is not installed"
 fi
 
-echo_level 1 "Downloading gbatemp thread"
-gbatemp_thread=$(wget -O- "https://gbatemp.net/threads/i-heard-that-you-guys-need-some-sweet-patches-for-atmosphere.521164/")
-href=$(pup ".attachmentInfo > .filename > a attr{href}" <<< "$gbatemp_thread")
+log-info "Downloading gbatemp thread"
+gbatemp_thread=$(wget -O- "$THREAD_URL") || die "Could not download gbatemp thread"
+
+log-info "Scraping attachment URL"
+href=$(pup ".attachmentInfo > .filename > a attr{href}" <<< "$gbatemp_thread") || die "pup failed"
 patches_url="https://gbatemp.net/$href"
 
-echo_level 1 "Downloading patches"
-wget -O patches.zip "$patches_url"
+log-info "Downloading patches.zip"
+wget -O patches.zip "$patches_url" || die "Could not download patches.zip"
 
-echo_level 1 "Extracting"
-unzip patches.zip -d patches
+log-info "Extracting patches.zip"
+unzip patches.zip -d patches || die "Could not extract patches.zip"
+
+log-info "Moving patches to \$OUTPUT_DIR/atmosphere/"
 cp -r patches/*/atmosphere/* "$OUTPUT_DIR/atmosphere/"

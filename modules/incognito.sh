@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-echo_level 0 "Incognito"
+log-info "Incognito"
 
-echo_level 1 "Downloading"
+log-info "Downloading assets"
 download_latest_assets blawar incognito
 
-echo_level 1 "Moving"
+log-info "Moving incognito.nro"
 mkdir "$OUTPUT_DIR/switch/incognito"
 mv incognito.nro "$OUTPUT_DIR/switch/incognito/"
+
+die "testing"

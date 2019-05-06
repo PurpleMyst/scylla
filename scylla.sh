@@ -1,60 +1,65 @@
 #!/usr/bin/env bash
 
-set -e
-
-if [ ! -x "$(command -v realpath)" ]; then
-    echo "Could not find readpath binary"
-    if [ "$(uname)" = "Darwin" ]; then
-        echo "You can install it from https://github.com/harto/realpath-osx"
-    fi
-    exit 1
-fi
-
-echo_level() {
-    for _ in $(seq 1 "$1"); do
-        echo -n " "
-    done
-
-    echo "${@:2}"
+log() {
+    test $# -eq 2 || die "USAGE: log COLOR MESSAGE"
+    printf $'[%s] %s%s\033[0m\n' "$(basename "$0" .sh)" "$1" "$2"
 }
-export -f echo_level
+export -f log
+
+log-info() {
+    log $'\033[34m' "$@"
+}
+export -f log-info
+
+log-error() {
+    log $'\033[31m' "$@"
+}
+export -f log-error
+
+die() {
+    log-error "$@"
+    exit 1
+}
+export -f die
 
 download_latest_assets() {
     if [ $# -ne 2 ]; then
-        echo "USAGE: $0 USER REPO"
-        exit 1
+        die "USAGE: download_latest_assets USER REPO"
     fi
 
-    local assets_url, assets_info, release_url, release_info
-
+    local release_url
     release_url="https://api.github.com/repos/$1/$2/releases/latest"
-    echo_level 2 "Getting release info"
-    release_info=$(wget --content-on-error=on -O- "$release_url")
+
+    log-info "Getting release info"
+    local release_info
+    release_info=$(wget --content-on-error=on -O- "$release_url") || die "Could not download release info"
 
     if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
-        echo_level 2 "Github API rate limit reached!"
-        exit 1
+        die "Github API rate limit reached!"
     fi
 
-    echo_level 2 "Getting asset info"
+    log-info "Getting asset info"
+    local assets_url
     assets_url=$(jq -r ".assets_url" <<< "$release_info")
-    assets_info=$(wget -O- "$assets_url")
+    local assets_info
+    assets_info=$(wget -O- "$assets_url") || die "Could not download asset info"
 
-    for asset in $(jq -c ".[]" <<< "$assets_info"); do
-        local url, filename
+    jq -c ".[]" <<< "$assets_info" | while IFS= read -r asset; do
+        local url
         url=$(jq -r ".browser_download_url" <<< "$asset")
+
+        local filename
         filename=$(jq -r ".name" <<< "$asset")
 
-        echo_level 2 "Downloading asset $filename"
-        wget -O "$filename" "$url"
+        log-info "Downloading asset $filename"
+        wget -O "$filename" "$url" || die "Could not download asset"
     done
 }
 export -f download_latest_assets
 
 check_devkitpro_packages() {
     if [ -z "$DEVKITPRO" ]; then
-        echo_level 1 "Could not find DevKitPro, please install it to run this module"
-        exit 1
+        die "Could not find DevKitPro, please install it to run this module"
     fi
 
     if [ -x "$(command -v dkp-pacman)" ]; then
@@ -62,24 +67,31 @@ check_devkitpro_packages() {
     elif [ -x "$(command -v pacman)" ]; then
         local pacman=pacman
     else
-        echo_level 1 "Could not find DevKitPro pacman"
-        exit 1
+        die "Could not find DevKitPro pacman"
     fi
 
     for package in "$@"; do
         if ! ( $pacman -Qi "$package" > /dev/null 2>&1 || $pacman -Qg "$package" > /dev/null 2>&1 ); then
-            echo_level 1 "Could not find required DevKitPro package $package"
-            echo_level 2 "You can install it by running:"
-            echo_level 2 "$ sudo $pacman -S $package"
+            log-error "Could not find required DevKitPro package $package"
+            log-error "You can install it by running:"
+            log-error "$ sudo $pacman -S $package"
             exit 1
         else
-            echo_level 1 "Found required DevKitPro package $package"
+            log-info "Found required DevKitPro package $package"
         fi
     done
 }
 export -f check_devkitpro_packages
 
 main() {
+    if [ ! -x "$(command -v realpath)" ]; then
+        log-error "Could not find realpath binary"
+        if [ "$(uname)" = "Darwin" ]; then
+            log-error "You can install it from https://github.com/harto/realpath-osx"
+        fi
+        exit 1
+    fi
+
     local BASE_OUTPUT_DIR
     BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
 
@@ -96,20 +108,42 @@ main() {
     export ASSET_DIR
     export CONFIG_DIR
 
-    echo_level 0 "Putting SD files into $OUTPUT_DIR"
-
-    if [ "$(uname)" == "Darwin" ]; then
-        local perm="+111"
-    else
-        local perm="/a+x"
-    fi
+    log-info "Putting SD files into $OUTPUT_DIR"
 
     local modules
-    modules=$(find modules -type f -perm $perm -exec realpath {} \; | sort)
-    cd "$ASSET_DIR"
-    for module in $modules; do
-        $module || exit 1
+    mapfile -t modules < <(find modules -type f -perm -111 -exec realpath {} \; | sort)
+
+    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+        local sequential_modules
+        sequential_modules=()
+
+        local parallel_modules
+        parallel_modules=()
+
+        for module in "${modules[@]}"; do
+            if [[ $(basename "$module") =~ ^[[:digit:]] ]]; then
+                sequential_modules+=("$module")
+            else
+                parallel_modules+=("$module")
+            fi
+        done
+    else
+        sequential_modules=("${modules[@]}")
+    fi
+
+    cd "$ASSET_DIR" || die "\$ASSET_DIR pulled out from under our feet!"
+    for module in "${sequential_modules[@]}"; do
+        $module || die "Sequential module failed"
     done
+
+    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+        if ! ( printf $'%s\n' "${parallel_modules[@]}" | parallel --halt now,fail=1 bash ); then
+            log-error "Parallel module failed"
+            log-error "Look for anything red (except this), and see if it tells you what to do"
+            log-error "If you can't find anything, set the environment variable \$NO_PARALLEL and run again"
+            exit 1
+        fi
+    fi
 }
 
 main

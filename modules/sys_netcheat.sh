@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-echo_level 0 "sys-netcheat"
+log-info "sys-netcheat"
 
-echo_level 1 "Downloading"
+log-info "Downloading assets"
 download_latest_assets jakibaki sys-netcheat
 
-echo_level 1 "Moving"
+log-info "Moving sys-netcheat.kip"
 mv sys-netcheat.kip "$OUTPUT_DIR/bootloader/kip-modules/"

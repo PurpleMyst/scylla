@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-echo_level 0 "hid_mitm"
 
-echo_level 1 "Downloading"
+log-info "hid_mitm"
+
+log-info "Downloading assets"
 download_latest_assets jakibaki hid-mitm
 
-echo_level 1 "Extracting"
+log-info "Extracting hid-mitm.zip"
 unzip hid-mitm.zip -d "$OUTPUT_DIR/"

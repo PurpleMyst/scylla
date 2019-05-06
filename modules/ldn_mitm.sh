@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-echo_level 0 "ldn_mitm"
+log-info "ldn_mitm"
 
-echo_level 1 "Downloading"
+log-info "Downloading assets"
 download_latest_assets spacemeowx2 ldn_mitm
 
-echo_level 1 "Extracting"
+log-info "Extracting ldn_mitm_*.zip"
 unzip ldn_mitm_*.zip -d "$OUTPUT_DIR/"

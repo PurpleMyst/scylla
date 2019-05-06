@@ -5,14 +5,11 @@ Switch Hacking.
 
 ## Requirements
 
-`scylla` parses JSON to download GitHub releases and parses a GBATemp thread to
-download IPS patches, so it requires shell tools for both of those tasks.
-
-It also uses DevKitPro to compile some of the system modules.
-
-- jq ( https://stedolan.github.io/jq/ )
-- pup ( https://github.com/ericchiang/pup )
-- DevKitPro ( https://devkitpro.org/ )
+- jq to parse API responses ( https://stedolan.github.io/jq/ )
+- pup to parse GBATemp threads ( https://github.com/ericchiang/pup )
+- DevKitPro to compile sys modules ( https://devkitpro.org/ )
+- unzip and p7zip to uncompress release assets
+- Optionally, GNU parallel to run tasks in parallel
 
 ## Usage
 
@@ -50,5 +47,5 @@ then `brew install pup` installs a good version.
 
 ## Special Thanks
 
-Special thanks to `Toph` on the HBG Discord for helping me out with this and
-giving me the idea!
+Special thanks to `Toph` on the HBG Discord for helping me out with this,
+creating the bootlogo, and giving me the idea!

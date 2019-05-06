@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-echo_level 0 "Bootlogo"
+log-info "Bootlogo"
 
-echo_level 1 "Decoding"
-
-echo_level 1 "Gunzipping"
+log-info "Uncompressing bootlogo.bmp.gz"
 cp "$CONFIG_DIR/bootloader/bootlogo.bmp.gz" .
 gunzip bootlogo.bmp.gz
 
-echo_level 1 "Moving"
+log-info "Moving bootlogo.bmp"
 mv bootlogo.bmp "$OUTPUT_DIR/bootloader/"
