@@ -1,7 +1,14 @@
 echo_level 0 "Bootlogo"
 
 echo_level 1 "Decoding"
-base64 -i -d > bootlogo.bmp.gz <<EOF
+
+if [ "$(uname)" == "Darwin" ]; then
+    base64_flags="-D"
+else
+    base64_flags="-d"
+fi
+
+tr -d ' ' | base64 $base64_flags > bootlogo.bmp.gz <<EOF
 H4sIAC1Rz1wAA+x9B3cc15XmdZaDgqOOPWOvN3hs754zWtljWbZIijmCyBkgmCmKVM7JkuzZWY9l
 SVYmKQYxgwSRc0ajcwPMJJhFiZTs/Rt7v2o8otHoUOFVAyTvd85VtcDuCu/dr+q79e67b/bSe2fe
 S8A9bL9gO/5F/s9XiL5APzX+/kX+9+98kwxT+PrXv05WcPvtt1v6fiJ87Wtfo29961uO92MFX/rS
