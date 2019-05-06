@@ -32,7 +32,7 @@ download_latest_assets() {
 
     log-info "Getting release info"
     local release_info
-    release_info=$(wget --content-on-error=on -O- "$release_url") || die "Could not download release info"
+    release_info=$(wget --content-on-error=on ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} -O- "$release_url") || die "Could not download release info"
 
     if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
         die "Github API rate limit reached!"

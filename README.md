@@ -28,15 +28,10 @@ If you're getting rate limiting errors, which admittedly is pretty rare unless
 you're developing this thing, there exists the option to increase your rate
 limit from 60 requests/hour to 5000.
 
-The first way is to set the enviroment variable `GITHUB_USERNAME` to your GitHub
-username. This uses basic HTTP authorization to send GitHub your username such
-that it knows who the requests are coming from. You can read up on this method
-[here](https://developer.github.com/v3/#basic-authentication).
-
-The second way is to set the enviroment variable `GITHUB_OAUTH_TOKEN` to a
-GitHub API OAuth2 token. This sends that token as an header when making
-requests so that it knows who the requests are coming from. You can read up on
-this method and on how to generate a token
+Set the enviroment variable `GITHUB_OAUTH_TOKEN` to a GitHub API OAuth2 token.
+This sends your token as an header when making requests so that GitHub knows
+who the requests are coming from. For more info on this method and on how 
+to generate a token
 [here](https://developer.github.com/v3/#oauth2-token-sent-in-a-header).
 
 ### Can't download patches on MacOS
