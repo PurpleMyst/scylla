@@ -22,6 +22,19 @@ die() {
 }
 export -f die
 
+# for gnu parallel
+_download_asset() {
+    local url
+    url=$(jq -r ".browser_download_url" <<< "$1")
+
+    local filename
+    filename=$(jq -r ".name" <<< "$1")
+
+    log-info "Downloading asset $filename"
+    wget -O "$filename" "$url" || die "Could not download asset"
+}
+export -f _download_asset
+
 download_latest_assets() {
     if [ $# -ne 2 ]; then
         die "USAGE: download_latest_assets USER REPO"
@@ -44,16 +57,13 @@ download_latest_assets() {
     local assets_info
     assets_info=$(wget -O- "$assets_url") || die "Could not download asset info"
 
-    jq -c ".[]" <<< "$assets_info" | while IFS= read -r asset; do
-        local url
-        url=$(jq -r ".browser_download_url" <<< "$asset")
-
-        local filename
-        filename=$(jq -r ".name" <<< "$asset")
-
-        log-info "Downloading asset $filename"
-        wget -O "$filename" "$url" || die "Could not download asset"
-    done
+    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+        jq -c ".[]" <<< "$assets_info" | parallel --halt now,fail=1 _download_asset
+    else
+        jq -c ".[]" <<< "$assets_info" | while IFS= read -r asset; do
+            _download_asset "$asset"
+        done
+    fi
 }
 export -f download_latest_assets
 
