@@ -23,7 +23,9 @@ files you don't want to run non-executable. You can use `chmod +x FILE` or
 Then, just run `./scylla.sh`, wait a bit, and magically an
 `sd-YEAR-MONTH-DAY/` directory will have appeared.
 
-## Rate Limiting Errors
+## Troubleshooting
+
+### Rate Limiting Errors
 
 If you're getting rate limiting errors, which admittedly is pretty rare unless
 you're developing this thing, there exists the option to increase your rate
@@ -39,6 +41,12 @@ GitHub API OAuth2 token. This sends that token as an header when making
 requests so that it knows who the requests are coming from. You can read up on
 this method and on how to generate a token
 [here](https://developer.github.com/v3/#oauth2-token-sent-in-a-header).
+
+### Can't download patches on MacOS
+
+If you're on a MacOS higher than High Sierra, `pup` segfaults if installed via
+the method listed in the project's `README`. A simple `brew uninstall pup`
+then `brew install pup` installs a good version.
 
 ## Special Thanks
 
