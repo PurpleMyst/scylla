@@ -95,7 +95,13 @@ main() {
 
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
 
-    local modules=$(find modules -type f -perm /111 -exec realpath {} \; | sort)
+    if [ "$(uname)" == "darwin" ]; then
+        local perm="+111"
+    else
+        local perm="/a+x"
+    fi
+
+    local modules=$(find modules -type f -perm $perm -exec realpath {} \; | sort)
     cd $ASSET_DIR
     for module in $modules; do
         $module
