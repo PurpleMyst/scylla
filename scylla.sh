@@ -2,7 +2,7 @@
 
 if [ ! -x $(command -v realpath) ]; then
     echo "Could not find readpath binary"
-    if [ $(uname -s) == "darwin" ]; then
+    if [ $(uname) == "Darwin" ]; then
         echo "You can install it from https://github.com/harto/realpath-osx"
     fi
     exit 1
@@ -95,7 +95,7 @@ main() {
 
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
 
-    if [ "$(uname)" == "darwin" ]; then
+    if [ "$(uname)" == "Darwin" ]; then
         local perm="+111"
     else
         local perm="/a+x"
