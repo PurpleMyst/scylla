@@ -25,4 +25,4 @@ echo_level 1 "Moving"
 mv sys-ftpd.kip "$OUTPUT_DIR/bootloader/kip-modules/"
 
 echo_level 1 "Extracting"
-cp -t "$OUTPUT_DIR" -r sd_card/*
+cp -r sd_card/* "$OUTPUT_DIR/"
