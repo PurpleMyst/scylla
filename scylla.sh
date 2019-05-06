@@ -94,6 +94,7 @@ main() {
 
     export OUTPUT_DIR=$(realpath $BASE_OUTPUT_DIR)
     export ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
+    export CONFIG_DIR=$(realpath config/)
 
     echo_level 0 "Putting SD files into $OUTPUT_DIR"
 

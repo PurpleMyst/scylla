@@ -44,7 +44,7 @@ this method and on how to generate a token
 
 ### Can't download patches on MacOS
 
-If you're on a MacOS higher than High Sierra, `pup` segfaults if installed via
+If you're on a MacOS High Sierra (or higher than Sierra), `pup` segfaults if installed via
 the method listed in the project's `README`. A simple `brew uninstall pup`
 then `brew install pup` installs a good version.
 
