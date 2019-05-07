@@ -4,14 +4,14 @@ log-info "sys-ftpd"
 check_devkitpro_packages switch-dev switch-mpg123
 
 log-info "Cloning jakibaki/sys-ftpd"
-git clone "$QUIET_FLAG" https://github.com/jakibaki/sys-ftpd || die "Could not clone jakibaki/sys-ftpd"
+quiet git clone https://github.com/jakibaki/sys-ftpd || die "Could not clone jakibaki/sys-ftpd"
 cd sys-ftpd || die "sys-ftpd/ pulled out from under our feet"
 
 log-info "Compiling sys-ftpd.kip"
-if [ -n "$QUIET_FLAG" ]; then
-    MAKE_STDOUT="/dev/null"
-else
+if [ -n "$VERBOSE" ]; then
     MAKE_STDOUT="/dev/stdout"
+else
+    MAKE_STDOUT="/dev/null"
 fi
 # These need to be separate because otherwise `make` considers `sys-ftpd.kip`
 # an intermediate file and delets it after it's done. Which is not what we

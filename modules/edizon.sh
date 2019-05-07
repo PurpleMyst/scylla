@@ -5,14 +5,14 @@ log-info "EdiZon"
 check_devkitpro_packages switch-dev switch-portlibs switch-freetype
 
 log-info "Cloning WerWolv/EdiZon"
-git clone "$QUIET_FLAG" https://github.com/WerWolv/EdiZon || die "Could not clone WerWolv/EdiZon"
+quiet git clone https://github.com/WerWolv/EdiZon || die "Could not clone WerWolv/EdiZon"
 cd EdiZon || die "EdiZon directory pulled out from under our feet!"
 
 # HACK: The commit specified here does not compile, but the one three commits
 # before does. The author has said that the bug will probably be fixed in the
 # next commit.
 if [ "$(git rev-parse HEAD)" == "61723064fc2e55549827b69bcd190b82cca884a9" ]; then
-    git checkout "$QUIET_FLAG" HEAD~3
+    quiet git checkout HEAD~3
 fi
 
 commit=$(git rev-parse HEAD)
@@ -36,10 +36,10 @@ else
         make_jobs=$((make_jobs / 2))
     fi
 
-    if [ -n "$QUIET_FLAG" ]; then
-        MAKE_STDOUT="/dev/null"
-    else
+    if [ -n "$VERBOSE" ]; then
         MAKE_STDOUT="/dev/stdout"
+    else
+        MAKE_STDOUT="/dev/null"
     fi
 
     log-info "Compiliing EdiZon.nro"
@@ -55,7 +55,7 @@ mkdir -p "$OUTPUT_DIR/switch/EdiZon"
 cp "$CACHE_DIR/edizon/EdiZon.nro" "$OUTPUT_DIR/switch/EdiZon/" || die "Could not move EdiZon.nro"
 
 log-info "Cloning WerWolv/EdiZon_CheatsConfigsAndScripts"
-git clone "$QUIET_FLAG" https://github.com/WerWolv/EdiZon_CheatsConfigsAndScripts || die "Could not clone WerWolv/EdiZon_CheatsConfigsAndScripts"
+quiet git clone https://github.com/WerWolv/EdiZon_CheatsConfigsAndScripts || die "Could not clone WerWolv/EdiZon_CheatsConfigsAndScripts"
 
 log-info "Copying Confings & Scripts"
 mkdir -p "$OUTPUT_DIR/switch/EdiZon/editor/scripts/"
