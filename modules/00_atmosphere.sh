@@ -10,4 +10,10 @@ unzip "*atmosphere*.zip" -d "$OUTPUT_DIR" || die "Could not extract *atmosphere*
 
 log-info "Moving fusee-primary.bin"
 mkdir -p "$OUTPUT_DIR/bootloader/payloads"
-cp fusee-primary.bin "$OUTPUT_DIR/bootloader/payloads"
+cp fusee-primary.bin "$OUTPUT_DIR/bootloader/payloads/"
+
+log-info "Copying titles"
+cp "$CONFIG_DIR/atmosphere/titles/*" "$OUTPUT_DIR/atmosphere/titles/"
+
+log-info "Copying system_settings.ini"
+cp "$CONFIG_DIR/atmosphere/system_settings.ini" "$OUTPUT_DIR/atmosphere/"
