@@ -31,7 +31,7 @@ _download_asset() {
     filename=$(jq -r ".name" <<< "$1")
 
     log-info "Downloading asset $filename"
-    wget -O "$filename" "$url" || die "Could not download asset"
+    wget "$QUIET_FLAG" -O "$filename" "$url" || die "Could not download asset"
 }
 export -f _download_asset
 
@@ -45,7 +45,7 @@ download_latest_assets() {
 
     log-info "Getting release info"
     local release_info
-    release_info=$(wget --content-on-error=on ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} -O- "$release_url") || die "Could not download release info"
+    release_info=$(wget "$QUIET_FLAG" --content-on-error=on ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} -O- "$release_url") || die "Could not download release info"
 
     if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
         die "Github API rate limit reached!"
@@ -55,7 +55,7 @@ download_latest_assets() {
     local assets_url
     assets_url=$(jq -r ".assets_url" <<< "$release_info")
     local assets_info
-    assets_info=$(wget -O- "$assets_url") || die "Could not download asset info"
+    assets_info=$(wget "$QUIET_FLAG" -O- "$assets_url") || die "Could not download asset info"
 
     if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
         jq -c ".[]" <<< "$assets_info" | parallel --halt now,fail=1 _download_asset
@@ -120,6 +120,15 @@ main() {
     mkdir -p "$CACHE_DIR" || die "Could not create cache directory"
 
     export CONFIG_DIR ASSET_DIR OUTPUT_DIR CACHE_DIR
+
+    if [ -n "$VERBOSE" ]; then
+        VERBOSE_FLAG="-v"
+        QUIET_FLAG=""
+    else
+        VERBOSE_FLAG=""
+        QUIET_FLAG="-q"
+    fi
+    export VERBOSE_FLAG QUIET_FLAG
 
     log-info "Putting SD files into $OUTPUT_DIR"
 

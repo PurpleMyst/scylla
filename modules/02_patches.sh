@@ -9,17 +9,17 @@ if [ ! -x "$(command -v pup)" ]; then
 fi
 
 log-info "Downloading gbatemp thread"
-gbatemp_thread=$(wget -O- "$THREAD_URL") || die "Could not download gbatemp thread"
+gbatemp_thread=$(wget "$QUIET_FLAG" -O- "$THREAD_URL") || die "Could not download gbatemp thread"
 
 log-info "Scraping attachment URL"
 href=$(pup ".attachmentInfo > .filename > a attr{href}" <<< "$gbatemp_thread") || die "pup failed"
 patches_url="https://gbatemp.net/$href"
 
 log-info "Downloading patches.zip"
-wget -O patches.zip "$patches_url" || die "Could not download patches.zip"
+wget "$QUIET_FLAG" -O patches.zip "$patches_url" || die "Could not download patches.zip"
 
 log-info "Extracting patches.zip"
-unzip patches.zip -d patches || die "Could not extract patches.zip"
+unzip "$QUIET_FLAG" patches.zip -d patches || die "Could not extract patches.zip"
 
 log-info "Moving patches to \$OUTPUT_DIR/atmosphere/"
 cp -r patches/*/atmosphere/* "$OUTPUT_DIR/atmosphere/"
