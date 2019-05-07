@@ -15,27 +15,38 @@ if [ "$(git rev-parse HEAD)" == "61723064fc2e55549827b69bcd190b82cca884a9" ]; th
     git checkout HEAD~3
 fi
 
-if [ -x "$(command -v nproc)" ]; then
-    make_jobs=$(nproc)
-elif [ "$(uname)" == "Darwin" ]; then
-    make_jobs=$(sysctl -n hw.physicalcpu)
+commit=$(git rev-parse HEAD)
+
+mkdir -p "$CACHE_DIR/edizon" || die "Could not create EdiZon cache directory"
+if [ -e "$CACHE_DIR/edizon/commit.txt" ] && [ "$(cat "$CACHE_DIR/edizon/commit.txt")" == "$commit" ]; then
+    log-info "Using cached EdiZon.nro"
 else
-    make_jobs=1
-fi
+    if [ -x "$(command -v nproc)" ]; then
+        make_jobs=$(nproc)
+    elif [ "$(uname)" == "Darwin" ]; then
+        make_jobs=$(sysctl -n hw.physicalcpu)
+    else
+        make_jobs=1
+    fi
 
-# We utilize only half of the cores because EdiZon is written in C++, a
-# language that's quite hard to compile: on my machine with eight logical cores
-# using all of them to compile absolutely kills it.
-if [ "$make_jobs" -gt 1 ]; then
-    make_jobs=$((make_jobs / 2))
-fi
+    # We utilize only half of the cores because EdiZon is written in C++, a
+    # language that's quite hard to compile: on my machine with eight logical cores
+    # using all of them to compile absolutely kills it.
+    if [ "$make_jobs" -gt 1 ]; then
+        make_jobs=$((make_jobs / 2))
+    fi
 
-log-info "Compiliing EdiZon.nro"
-make -j$make_jobs || die "Could not compile EdiZon.nro"
+    log-info "Compiliing EdiZon.nro"
+    make -j$make_jobs || die "Could not compile EdiZon.nro"
+
+    log-info "Caching EdiZon.nro"
+    cp out/EdiZon.nro "$CACHE_DIR/edizon/"
+    echo "$commit" > "$CACHE_DIR/edizon/commit.txt"
+fi
 
 log-info "Moving EdiZon.nro"
-mkdir "$OUTPUT_DIR/switch/EdiZon"
-cp out/EdiZon.nro "$OUTPUT_DIR/switch/EdiZon/" || die "Could not move EdiZon.nro"
+mkdir -p "$OUTPUT_DIR/switch/EdiZon"
+cp "$CACHE_DIR/edizon/EdiZon.nro" "$OUTPUT_DIR/switch/EdiZon/" || die "Could not move EdiZon.nro"
 
 log-info "Cloning WerWolv/EdiZon_CheatsConfigsAndScripts"
 git clone https://github.com/WerWolv/EdiZon_CheatsConfigsAndScripts || die "Could not clone WerWolv/EdiZon_CheatsConfigsAndScripts"

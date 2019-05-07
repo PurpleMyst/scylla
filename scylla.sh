@@ -114,9 +114,12 @@ main() {
     OUTPUT_DIR=$(realpath "$BASE_OUTPUT_DIR")
     ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
     CONFIG_DIR=$(realpath config/)
-    export OUTPUT_DIR
-    export ASSET_DIR
-    export CONFIG_DIR
+
+    # this is not "technically" correct on MacOS but it should be fine
+    CACHE_DIR="${XDG_CACHE_DIR:-$HOME/.cache}/scylla"
+    mkdir -p "$CACHE_DIR" || die "Could not create cache directory"
+
+    export CONFIG_DIR ASSET_DIR OUTPUT_DIR CACHE_DIR
 
     log-info "Putting SD files into $OUTPUT_DIR"
 
