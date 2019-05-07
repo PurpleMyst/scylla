@@ -52,9 +52,9 @@ log-info "Cloning WerWolv/EdiZon_CheatsConfigsAndScripts"
 git clone https://github.com/WerWolv/EdiZon_CheatsConfigsAndScripts || die "Could not clone WerWolv/EdiZon_CheatsConfigsAndScripts"
 
 log-info "Copying Confings & Scripts"
-mkdir -p "$OUTPUT_DIR/EdiZon/editor/scripts/"
-cp -r EdiZon_CheatsConfigsAndScripts/Configs/* "$OUTPUT_DIR/EdiZon/editor/"
-cp -r EdiZon_CheatsConfigsAndScripts/Scripts/* "$OUTPUT_DIR/EdiZon/editor/scripts/"
+mkdir -p "$OUTPUT_DIR/switch/EdiZon/editor/scripts/"
+cp -r EdiZon_CheatsConfigsAndScripts/Configs/* "$OUTPUT_DIR/switch/EdiZon/editor/"
+cp -r EdiZon_CheatsConfigsAndScripts/Scripts/* "$OUTPUT_DIR/switch/EdiZon/editor/scripts/"
 
 log-info "Copying Cheats"
 cp -r EdiZon_CheatsConfigsAndScripts/Cheats/* "$OUTPUT_DIR/atmosphere/titles/"
