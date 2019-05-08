@@ -1,40 +1,59 @@
 #!/usr/bin/env bash
 
+# Output a message with provenance information and color.
+# No color codes are outputted if stdout is not a tty.
+#
+# Arguments:
+#   $1 -> ANSI color code (e.g. $'\033[31m')
+#   $2 -> Message
+#
+# Failure:
+#   1. Not enough arguments
 log() {
     test $# -eq 2 || die "USAGE: log COLOR MESSAGE"
-    printf $'[%s] %s%s\033[0m\n' "$(basename "$0" .sh)" "$1" "$2"
+
+    if test -t 1; then
+        color="$1"
+        endcolor=$'\033[0m'
+    else
+        color=""
+        endcolor=""
+    fi
+
+    printf $'[%s] %s%s%s\n' "$(basename "$0" .sh)" "$color" "$2" "$endcolor"
 }
 export -f log
 
+# Same as `log`, but $1 is $'\033[34m', the ANSI code for blue.
 log-info() {
     log $'\033[34m' "$@"
 }
 export -f log-info
 
+# Same as `log`, but $1 is $'\033[34m', the ANSI code for red.
 log-error() {
     log $'\033[31m' "$@"
 }
 export -f log-error
 
+# Output a message with `log-error` and exit with code 1.
+#
+# Arguments:
+#   $@ -> passed to `log-error`
 die() {
     log-error "$@"
     exit 1
 }
 export -f die
 
-# for gnu parallel
-_download_asset() {
-    local url
-    url=$(jq -r ".browser_download_url" <<< "$1")
-
-    local filename
-    filename=$(jq -r ".name" <<< "$1")
-
-    log-info "Downloading asset $filename"
-    quiet wget  -O "$filename" "$url" || die "Could not download asset"
-}
-export -f _download_asset
-
+# Run a command, adding a `-q` argument if `$VERBOSE` is empty or unset.
+#
+# Arguments:
+#   $1 -> program name
+#   ${@:2} -> program arguments
+#
+# Special cases:
+#   $1 = "git" -> `-q` is inserted after the first argument, not before.
 quiet() {
     if [ -n "$VERBOSE" ]; then
         $1 "${@:2}"
@@ -48,6 +67,30 @@ quiet() {
 }
 export -f quiet
 
+# for gnu parallel
+_download_asset() {
+    local url
+    url=$(jq -r ".browser_download_url" <<< "$1")
+
+    local filename
+    filename=$(jq -r ".name" <<< "$1")
+
+    log-info "Downloading asset $filename"
+    quiet wget -O "$filename" "$url" || die "Could not download asset"
+}
+export -f _download_asset
+
+# Download the latest GitHub release assets of a repo.
+#
+# Arguments:
+#   $1 -> GitHub username of the repo's owner
+#   $2 -> The repo's name
+#
+# Failure:
+#   1. Not enough arguments provided
+#   2. Tried to access unexistent or private repo
+#   3. Rate limit reached
+#   4. Could not download asset
 download_latest_assets() {
     if [ $# -ne 2 ]; then
         die "USAGE: download_latest_assets USER REPO"
@@ -68,6 +111,7 @@ download_latest_assets() {
     local assets_url
     assets_url=$(jq -r ".assets_url" <<< "$release_info")
     local assets_info
+    # FIXME: Check rate limiting here too
     assets_info=$(quiet wget -O- "$assets_url") || die "Could not download asset info"
 
     if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
@@ -80,15 +124,25 @@ download_latest_assets() {
 }
 export -f download_latest_assets
 
+# Verify the installation of DevKitPro and of its packages.
+#
+# Arguments:
+#   $@ -> Names of packages to verify the installation of
+#
+# Failure:
+#   1. $DEVKITPRO unset or empty
+#   2. Neither `dkp-pacman` nor `pacman` present
+#   3. Any of $@ not installed
 check_devkitpro_packages() {
     if [ -z "$DEVKITPRO" ]; then
         die "Could not find DevKitPro, please install it to run this module"
     fi
 
+    local pacman
     if [ -x "$(command -v dkp-pacman)" ]; then
-        local pacman=dkp-pacman
+        pacman=dkp-pacman
     elif [ -x "$(command -v pacman)" ]; then
-        local pacman=pacman
+        pacman=pacman
     else
         die "Could not find DevKitPro pacman"
     fi
@@ -163,7 +217,7 @@ main() {
     done
 
     if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
-        if ! ( printf $'%s\n' "${parallel_modules[@]}" | parallel --halt now,fail=1 bash ); then
+        if ! ( printf $'%s\n' "${parallel_modules[@]}" | parallel --halt now,fail=1 ); then
             log-error "Parallel module failed"
             log-error "Look for anything red (except this), and see if it tells you what to do"
             log-error "If you can't find anything, set the environment variable \$NO_PARALLEL and run again"
