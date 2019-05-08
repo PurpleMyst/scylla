@@ -148,7 +148,7 @@ check_devkitpro_packages() {
     fi
 
     for package in "$@"; do
-        if ! ( $pacman -Qi "$package" > /dev/null 2>&1 || $pacman -Qg "$package" > /dev/null 2>&1 ); then
+        if ! ( $pacman -Qi "$package" &> /dev/null || $pacman -Qg "$package" &> /dev/null ); then
             log-error "Could not find required DevKitPro package $package"
             log-error "You can install it by running:"
             log-error "$ sudo $pacman -S $package"
