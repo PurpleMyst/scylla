@@ -42,5 +42,5 @@ then `brew install pup` installs a good version.
 
 ## Special Thanks
 
-Special thanks to `Toph` on the HBG Discord for helping me out with this,
+Special thanks to [sudot0ph](https://github.com/sudot0ph) for helping me out with this,
 creating the bootlogo, and giving me the idea!
