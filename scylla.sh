@@ -177,6 +177,8 @@ install_nsp() {
     log-info "Determining title"
     title=$(jq -r ".title_id" < "$1.json") || die "Could not determine title"
 
+    title=$(sed 's/^0x//' <<< "$title") || die "Could not remove 0x from title"
+
     log-info "Moving $1.nsp"
     mkdir "$OUTPUT_DIR/atmosphere/titles/$title"
     cp "$1.nsp" "$OUTPUT_DIR/atmosphere/titles/$title/exefs.nsp" || die "Could not move $1.nsp"
