@@ -18,7 +18,7 @@ else
 fi
 make &> "$MAKE_STDOUT" || die "Could not compile sys-ftpd.nsp"
 
-install_nsp sys-ftpd
+install_nsp sys-ftpd boot2
 
 log-info "Moving sd_card/*"
 cp -r sd_card/* "$OUTPUT_DIR/"

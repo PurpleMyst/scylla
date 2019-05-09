@@ -164,14 +164,15 @@ export -f check_devkitpro_packages
 #
 # Arguments:
 #   $1 -> base name of the NSP (e.g. "sys-ftpd" )
+#   ${@:2} -> flags for the title
 #
 # Failure:
 #   1. Not enough arguments
 #   2. Missing "title_id" in "$1.json"
 #   3. `cp` error
 install_nsp() {
-    if [ $# -ne 1 ]; then
-        die "USAGE: install_nsp BASENAME"
+    if [ $# -lt 1 ]; then
+        die "USAGE: install_nsp BASENAME FLAGS"
     fi
 
     log-info "Determining title"
@@ -182,6 +183,12 @@ install_nsp() {
     log-info "Moving $1.nsp"
     mkdir "$OUTPUT_DIR/atmosphere/titles/$title"
     cp "$1.nsp" "$OUTPUT_DIR/atmosphere/titles/$title/exefs.nsp" || die "Could not move $1.nsp"
+
+    mkdir "$OUTPUT_DIR/atmosphere/titles/$title/flags"
+    for flag in "${@:2}"; do
+        log-info "Adding flag $flag"
+        touch "$OUTPUT_DIR/atmosphere/titles/$title/flags/$flag.flag" || die "Could not add flag $flag"
+    done
 }
 export -f install_nsp
 
