@@ -18,12 +18,7 @@ else
 fi
 make &> "$MAKE_STDOUT" || die "Could not compile sys-ftpd.nsp"
 
-log-info "Determining title"
-title=$(jq -r ".title_id" < sys-ftpd.json) || die "Could not determine title"
-
-log-info "Moving sys-ftpd.nsp"
-mkdir "$OUTPUT_DIR/atmosphere/titles/$title"
-cp sys-ftpd.nsp "$OUTPUT_DIR/atmosphere/titles/$title/exefs.nsp" || die "Could not move sys-ftpd.nsp"
+install_nsp sys-ftpd
 
 log-info "Moving sd_card/*"
 cp -r sd_card/* "$OUTPUT_DIR/"

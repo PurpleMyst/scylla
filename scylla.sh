@@ -160,6 +160,29 @@ check_devkitpro_packages() {
 }
 export -f check_devkitpro_packages
 
+# Install an NSP into `/atmosphere/titles/`
+#
+# Arguments:
+#   $1 -> base name of the NSP (e.g. "sys-ftpd" )
+#
+# Failure:
+#   1. Not enough arguments
+#   2. Missing "title_id" in "$1.json"
+#   3. `cp` error
+install_nsp() {
+    if [ $# -ne 1 ]; then
+        die "USAGE: install_nsp BASENAME"
+    fi
+
+    log-info "Determining title"
+    title=$(jq -r ".title_id" < "$1.json") || die "Could not determine title"
+
+    log-info "Moving $1.nsp"
+    mkdir "$OUTPUT_DIR/atmosphere/titles/$title"
+    cp "$1.nsp" "$OUTPUT_DIR/atmosphere/titles/$title/exefs.nsp" || die "Could not move $1.nsp"
+}
+export -f install_nsp
+
 main() {
     if [ ! -x "$(command -v realpath)" ]; then
         log-error "Could not find realpath binary"
