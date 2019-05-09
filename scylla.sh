@@ -56,12 +56,12 @@ export -f die
 #   $1 = "git" -> `-q` is inserted after the first argument, not before.
 #   $1 = "make" -> Instead of adding `-q`, stdout and stderr are redirected to /dev/null
 quiet() {
-    if [ -n "$VERBOSE" ]; then
+    if [[ -n $VERBOSE ]]; then
         $1 "${@:2}"
     else
-        if [ "$1" == "git" ]; then
+        if [[ $1 == git ]]; then
             $1 "$2" -q "${@:3}"
-        elif [ "$1" == "make" ]; then
+        elif [[ $1 == make ]]; then
             $1 "${@:2}" &> /dev/null
         else
             $1 -q "${@:2}"
@@ -110,7 +110,7 @@ export -f _github_api_call
 #   3. Rate limit reached
 #   4. Could not download asset
 download_latest_assets() {
-    if [ $# -ne 2 ]; then
+    if [[ $# -ne 2 ]]; then
         die "USAGE: download_latest_assets USER REPO"
     fi
 
@@ -122,7 +122,7 @@ download_latest_assets() {
     local assets_info
     assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")")
 
-    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
         jq -c ".[]" <<< "$assets_info" | parallel --halt now,fail=1 _download_asset
     else
         jq -c ".[]" <<< "$assets_info" | while IFS= read -r asset; do
@@ -142,14 +142,14 @@ export -f download_latest_assets
 #   2. Neither `dkp-pacman` nor `pacman` present
 #   3. Any of $@ not installed
 check_devkitpro_packages() {
-    if [ -z "$DEVKITPRO" ]; then
+    if [[ -z $DEVKITPRO ]]; then
         die "Could not find DevKitPro, please install it to run this module"
     fi
 
     local pacman
-    if [ -x "$(command -v dkp-pacman)" ]; then
+    if [[ -x $(command -v dkp-pacman) ]]; then
         pacman=dkp-pacman
-    elif [ -x "$(command -v pacman)" ]; then
+    elif [[ -x $(command -v pacman) ]]; then
         pacman=pacman
     else
         die "Could not find DevKitPro pacman"
@@ -179,7 +179,7 @@ export -f check_devkitpro_packages
 #   2. Missing "title_id" in "$1.json"
 #   3. `cp` error
 install_nsp() {
-    if [ $# -lt 1 ]; then
+    if [[ $# -lt 1 ]]; then
         die "USAGE: install_nsp BASENAME FLAGS"
     fi
 
@@ -201,9 +201,9 @@ install_nsp() {
 export -f install_nsp
 
 main() {
-    if [ ! -x "$(command -v realpath)" ]; then
+    if [[ ! -x $(command -v realpath) ]]; then
         log-error "Could not find realpath binary"
-        if [ "$(uname)" = "Darwin" ]; then
+        if [[ $(uname) = Darwin ]]; then
             log-error "You can install it from https://github.com/harto/realpath-osx"
         fi
         exit 1
@@ -233,7 +233,7 @@ main() {
     local modules
     mapfile -t modules < <(find modules -type f -perm -111 -exec realpath {} \; | sort)
 
-    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
         local sequential_modules
         sequential_modules=()
 
@@ -256,7 +256,7 @@ main() {
         $module || die "Sequential module failed"
     done
 
-    if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
+    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
         if ! ( printf $'%s\n' "${parallel_modules[@]}" | parallel --halt now,fail=1 ); then
             log-error "Parallel module failed"
             log-error "Look for anything red (except this), and see if it tells you what to do"
