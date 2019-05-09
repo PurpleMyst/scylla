@@ -83,6 +83,21 @@ _download_asset() {
 }
 export -f _download_asset
 
+_github_api_call() {
+    local result
+    result=$(quiet wget \
+             --content-on-error=on \
+             ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} \
+             -O- "$1") || die "Could not download $1"
+
+    if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
+        die "Github API rate limit reached!"
+    fi
+
+    echo "$result"
+}
+export -f _github_api_call
+
 # Download the latest GitHub release assets of a repo.
 #
 # Arguments:
@@ -99,23 +114,13 @@ download_latest_assets() {
         die "USAGE: download_latest_assets USER REPO"
     fi
 
-    local release_url
-    release_url="https://api.github.com/repos/$1/$2/releases/latest"
-
     log-info "Getting release info"
     local release_info
-    release_info=$(quiet wget --content-on-error=on ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} -O- "$release_url") || die "Could not download release info"
-
-    if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
-        die "Github API rate limit reached!"
-    fi
+    release_info=$(_github_api_call "https://api.github.com/repos/$1/$2/releases/latest")
 
     log-info "Getting asset info"
-    local assets_url
-    assets_url=$(jq -r ".assets_url" <<< "$release_info")
     local assets_info
-    # FIXME: Check rate limiting here too
-    assets_info=$(quiet wget -O- "$assets_url") || die "Could not download asset info"
+    assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")")
 
     if [ -z "$NO_PARALLEL" ] && [ -x "$(command -v parallel)" ]; then
         jq -c ".[]" <<< "$assets_info" | parallel --halt now,fail=1 _download_asset
