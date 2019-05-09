@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+STDOUT_TTY=$(test -t 1)
+readonly STDOUT_TTY
+
 # Output a message with provenance information and color.
 # No color codes are outputted if stdout is not a tty.
 #
@@ -12,7 +15,7 @@
 log() {
     test $# -eq 2 || die "USAGE: log COLOR MESSAGE"
 
-    if test -t 1; then
+    if [[ $STDOUT_TTY -eq 0 ]]; then
         color="$1"
         endcolor=$'\033[0m'
     else
