@@ -36,14 +36,8 @@ else
         make_jobs=$((make_jobs / 2))
     fi
 
-    if [ -n "$VERBOSE" ]; then
-        MAKE_STDOUT="/dev/stdout"
-    else
-        MAKE_STDOUT="/dev/null"
-    fi
-
     log-info "Compiliing EdiZon.nro"
-    make -j$make_jobs &> "$MAKE_STDOUT" || die "Could not compile EdiZon.nro"
+    quiet make -j$make_jobs || die "Could not compile EdiZon.nro"
 
     log-info "Caching EdiZon.nro"
     cp out/EdiZon.nro "$CACHE_DIR/edizon/"

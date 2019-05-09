@@ -54,12 +54,15 @@ export -f die
 #
 # Special cases:
 #   $1 = "git" -> `-q` is inserted after the first argument, not before.
+#   $1 = "make" -> Instead of adding `-q`, stdout and stderr are redirected to /dev/null
 quiet() {
     if [ -n "$VERBOSE" ]; then
         $1 "${@:2}"
     else
         if [ "$1" == "git" ]; then
             $1 "$2" -q "${@:3}"
+        elif [ "$1" == "make" ]; then
+            $1 "${@:2}" &> /dev/null
         else
             $1 -q "${@:2}"
         fi

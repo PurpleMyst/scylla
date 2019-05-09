@@ -11,12 +11,7 @@ quiet git clone https://github.com/jakibaki/sys-ftpd || die "Could not clone jak
 cd sys-ftpd || die "sys-ftpd/ pulled out from under our feet"
 
 log-info "Compiling sys-ftpd.nsp"
-if [ -n "$VERBOSE" ]; then
-    MAKE_STDOUT="/dev/stdout"
-else
-    MAKE_STDOUT="/dev/null"
-fi
-make &> "$MAKE_STDOUT" || die "Could not compile sys-ftpd.nsp"
+quiet make || die "Could not compile sys-ftpd.nsp"
 
 install_nsp sys-ftpd boot2
 
