@@ -92,21 +92,24 @@ _github_api_call() {
              --content-on-error=on \
              ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} \
              -O- "$1")
-    exit_code=$?
 
-    if [[ $exit_code -ne 0 ]]; then
-        if [[ $exit_code -eq 8 ]]; then
+    case $? in
+        0)
+            echo "$result"
+            ;;
+
+        8)
             error="$(jq -r ".message" <<< "$result")"
-            log-error "GitHub API returned error!"
+            log-error "GitHub API returned error for $1"
             log-error "Message: $error"
             return 1
-        else
+            ;;
+
+        *)
             log-error "Could not download $1 (wget exit code: $exit_code)"
             return 1
-        fi
-    fi
-
-    echo "$result"
+            ;;
+    esac
 }
 export -f _github_api_call
 
