@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-STDERR_TTY=$(test -t 2)
-readonly STDERR_TTY
+STDERR_TTY=$(test -t 2)$?
+export -r STDERR_TTY
 
 # Output a message with provenance information and color to stderr.
 # No color codes are outputted if stderr is not a tty.
