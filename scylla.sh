@@ -142,11 +142,11 @@ download_latest_assets() {
 
     log-info "Getting release info"
     local release_info
-    release_info=$(_github_api_call "https://api.github.com/repos/$1/$2/releases/latest") || exit 1
+    release_info=$(_github_api_call "https://api.github.com/repos/$1/$2/releases") || exit 1
 
     log-info "Getting asset info"
     local assets_info
-    assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")") || exit 1
+    assets_info=$(_github_api_call "$(jq -r ".[0] | .assets_url" <<< "$release_info")") || exit 1
 
     jq -c ".[]" <<< "$assets_info" | _maybe_parallel _download_asset
 }
