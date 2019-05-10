@@ -62,13 +62,19 @@ quiet() {
     if [[ -n $VERBOSE ]]; then
         $1 "${@:2}"
     else
-        if [[ $1 = git ]]; then
+        case $1 in
+        git)
             $1 "$2" -q "${@:3}"
-        elif [[ $1 = make ]]; then
+            ;;
+
+        make)
             $1 "${@:2}" &> /dev/null
-        else
+            ;;
+
+        *)
             $1 -q "${@:2}"
-        fi
+            ;;
+        esac
     fi
 }
 export -f quiet
