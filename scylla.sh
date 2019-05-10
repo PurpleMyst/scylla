@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-STDOUT_TTY=$(test -t 1)
-readonly STDOUT_TTY
+STDERR_TTY=$(test -t 2)
+readonly STDERR_TTY
 
-# Output a message with provenance information and color.
-# No color codes are outputted if stdout is not a tty.
+# Output a message with provenance information and color to stderr.
+# No color codes are outputted if stderr is not a tty.
 #
 # Arguments:
 #   $1 -> ANSI color code (e.g. $'\033[31m')
@@ -15,7 +15,7 @@ readonly STDOUT_TTY
 log() {
     test $# -eq 2 || die "USAGE: log COLOR MESSAGE"
 
-    if [[ $STDOUT_TTY -eq 0 ]]; then
+    if [[ $STDERR_TTY -eq 0 ]]; then
         color="$1"
         endcolor=$'\033[0m'
     else
@@ -23,7 +23,7 @@ log() {
         endcolor=""
     fi
 
-    printf $'[%s] %s%s%s\n' "$(basename "$0" .sh)" "$color" "$2" "$endcolor"
+    printf $'[%s] %s%s%s\n' "$(basename "$0" .sh)" "$color" "$2" "$endcolor" >&2
 }
 export -f log
 
