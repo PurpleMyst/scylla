@@ -95,11 +95,15 @@ _github_api_call() {
     exit_code=$?
 
     if [[ $exit_code -ne 0 ]]; then
-        if [[ $exit_code -eq 8 ]] && jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
-            die "Github API rate limit reached!"
+        if [[ $exit_code -eq 8 ]]; then
+            error="$(jq -r ".message" <<< "$result")"
+            log-error "GitHub API returned error!"
+            log-error "Message: $error"
+            return 1
+        else
+            log-error "Could not download $1 (wget exit code: $exit_code)"
+            return 1
         fi
-
-        die "Could not download $1 (wget exit code: $exit_code)"
     fi
 
     echo "$result"
@@ -135,11 +139,11 @@ download_latest_assets() {
 
     log-info "Getting release info"
     local release_info
-    release_info=$(_github_api_call "https://api.github.com/repos/$1/$2/releases/latest")
+    release_info=$(_github_api_call "https://api.github.com/repos/$1/$2/releases/latest") || exit 1
 
     log-info "Getting asset info"
     local assets_info
-    assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")")
+    assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")") || exit 1
 
     jq -c ".[]" <<< "$assets_info" | _maybe_parallel _download_asset
 }
