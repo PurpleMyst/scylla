@@ -98,8 +98,9 @@ _github_api_call() {
              --content-on-error=on \
              ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} \
              -O- "$1")
+    exit_code=$?
 
-    case $? in
+    case $exit_code in
         0)
             echo "$result"
             ;;
