@@ -229,6 +229,12 @@ main() {
         exit 1
     fi
 
+    if [[ -f .github_oauth_token && -z "$GITHUB_OAUTH_TOKEN" ]]; then
+        log-info "Loading OAuth token from .github_oauth_token"
+        GITHUB_OAUTH_TOKEN="$(cat .github_oauth_token)"
+        export GITHUB_OAUTH_TOKEN
+    fi
+
     local BASE_OUTPUT_DIR
     BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
 
