@@ -87,14 +87,19 @@ _download_asset() {
 export -f _download_asset
 
 _github_api_call() {
-    local result
+    local result exit_code
     result=$(quiet wget \
              --content-on-error=on \
              ${GITHUB_OAUTH_TOKEN:+--header="Authorization: token $GITHUB_OAUTH_TOKEN"} \
-             -O- "$1") || die "Could not download $1"
+             -O- "$1")
+    exit_code=$?
 
-    if jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
-        die "Github API rate limit reached!"
+    if [[ $exit_code -ne 0 ]]; then
+        if [[ $exit_code -eq 8 ]] && jq -r ".message" <<< "$release_info" | grep -q "rate limit"; then
+            die "Github API rate limit reached!"
+        fi
+
+        die "Could not download $1 (wget exit code: $exit_code)"
     fi
 
     echo "$result"
