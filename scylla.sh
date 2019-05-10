@@ -106,6 +106,17 @@ _github_api_call() {
 }
 export -f _github_api_call
 
+_maybe_parallel() {
+    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
+        parallel --halt now,fail=1 "$@"
+    else
+        while IFS= read -r arg; do
+            "$@" "$arg"
+        done
+    fi
+}
+export -f _maybe_parallel
+
 # Download the latest GitHub release assets of a repo.
 #
 # Arguments:
@@ -130,13 +141,7 @@ download_latest_assets() {
     local assets_info
     assets_info=$(_github_api_call "$(jq -r ".assets_url" <<< "$release_info")")
 
-    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
-        jq -c ".[]" <<< "$assets_info" | parallel --halt now,fail=1 _download_asset
-    else
-        jq -c ".[]" <<< "$assets_info" | while IFS= read -r asset; do
-            _download_asset "$asset"
-        done
-    fi
+    jq -c ".[]" <<< "$assets_info" | _maybe_parallel _download_asset
 }
 export -f download_latest_assets
 
@@ -241,36 +246,33 @@ main() {
     local modules
     mapfile -t modules < <(find modules -type f -perm -111 -exec realpath {} \; | sort)
 
-    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
-        local sequential_modules
-        sequential_modules=()
+    local sequential_modules
+    sequential_modules=()
 
-        local parallel_modules
-        parallel_modules=()
+    local parallel_modules
+    parallel_modules=()
 
-        for module in "${modules[@]}"; do
-            if [[ $(basename "$module") =~ ^[[:digit:]] ]]; then
-                sequential_modules+=("$module")
-            else
-                parallel_modules+=("$module")
-            fi
-        done
-    else
-        sequential_modules=("${modules[@]}")
-    fi
+    for module in "${modules[@]}"; do
+        if [[ $(basename "$module") =~ ^[[:digit:]] ]]; then
+            sequential_modules+=("$module")
+        else
+            parallel_modules+=("$module")
+        fi
+    done
 
     cd "$ASSET_DIR" || die "\$ASSET_DIR pulled out from under our feet!"
     for module in "${sequential_modules[@]}"; do
-        $module || die "Sequential module failed"
+        $module || exit 1
     done
 
-    if [[ -z $NO_PARALLEL && -x $(command -v parallel) ]]; then
-        if ! ( printf $'%s\n' "${parallel_modules[@]}" | parallel --halt now,fail=1 ); then
+    if ! ( printf $'%s\n' "${parallel_modules[@]}" | _maybe_parallel ); then
+        if [[ -z $NO_PARALLEL ]]; then
             log-error "Parallel module failed"
             log-error "Look for anything red (except this), and see if it tells you what to do"
             log-error "If you can't find anything, set the environment variable \$NO_PARALLEL and run again"
-            exit 1
         fi
+
+        exit 1
     fi
 }
 
