@@ -62,9 +62,9 @@ quiet() {
     if [[ -n $VERBOSE ]]; then
         $1 "${@:2}"
     else
-        if [[ $1 == git ]]; then
+        if [[ $1 = git ]]; then
             $1 "$2" -q "${@:3}"
-        elif [[ $1 == make ]]; then
+        elif [[ $1 = make ]]; then
             $1 "${@:2}" &> /dev/null
         else
             $1 -q "${@:2}"
@@ -220,42 +220,7 @@ install_nsp() {
 }
 export -f install_nsp
 
-main() {
-    if [[ ! -x $(command -v realpath) ]]; then
-        log-error "Could not find realpath binary"
-        if [[ $(uname) = Darwin ]]; then
-            log-error "You can install it from https://github.com/harto/realpath-osx"
-        fi
-        exit 1
-    fi
-
-    if [[ -f .github_oauth_token && -z "$GITHUB_OAUTH_TOKEN" ]]; then
-        log-info "Loading OAuth token from .github_oauth_token"
-        GITHUB_OAUTH_TOKEN="$(cat .github_oauth_token)"
-        export GITHUB_OAUTH_TOKEN
-    fi
-
-    local BASE_OUTPUT_DIR
-    BASE_OUTPUT_DIR="sd-$(date '+%Y-%m-%d')"
-
-    rm -rf "$BASE_OUTPUT_DIR"
-    mkdir -p "$BASE_OUTPUT_DIR"
-
-    # We must create `$BASE_OUTPUT_DIR` before giving it to `realpath` due to
-    # BSD-like platforms such as MacOS only wanting to `realpath` pre-existing
-    # folders.
-    OUTPUT_DIR=$(realpath "$BASE_OUTPUT_DIR")
-    ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
-    CONFIG_DIR=$(realpath config/)
-
-    # this is not "technically" correct on MacOS but it should be fine
-    CACHE_DIR="${XDG_CACHE_DIR:-$HOME/.cache}/scylla"
-    mkdir -p "$CACHE_DIR" || die "Could not create cache directory"
-
-    export CONFIG_DIR ASSET_DIR OUTPUT_DIR CACHE_DIR
-
-    log-info "Putting SD files into $OUTPUT_DIR"
-
+run_modules() {
     local modules
     mapfile -t modules < <(find modules -type f -perm -111 -exec realpath {} \; | sort)
 
@@ -287,6 +252,45 @@ main() {
 
         exit 1
     fi
+}
+
+# Create a fresh directory and return its real path
+fresh-dir() {
+    if [[ -d $1 ]]; then
+        rm -rf "$1"
+    fi
+
+    # We must create `$1` before giving it to `realpath` due to
+    # BSD `realpath` only accepting pre-existing folders.
+    mkdir -p "$1"
+    realpath "$1"
+}
+
+main() {
+    if [[ ! -x $(command -v realpath) ]]; then
+        log-error "Could not find realpath binary"
+        if [[ $(uname) = Darwin ]]; then
+            log-error "You can install it from https://github.com/harto/realpath-osx"
+        fi
+        exit 1
+    fi
+
+    if [[ -f .github_oauth_token && -z "$GITHUB_OAUTH_TOKEN" ]]; then
+        log-info "Loading OAuth token from .github_oauth_token"
+        GITHUB_OAUTH_TOKEN="$(cat .github_oauth_token)"
+        export GITHUB_OAUTH_TOKEN
+    fi
+
+    OUTPUT_DIR=$(fresh-dir "sd-$(date '+%Y-%m-%d')")
+    ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
+    CONFIG_DIR=$(realpath config/)
+    CACHE_DIR="${XDG_CACHE_DIR:-$HOME/.cache}/scylla"
+    mkdir -p "$CACHE_DIR"
+    export CONFIG_DIR ASSET_DIR OUTPUT_DIR CACHE_DIR
+
+    log-info "Putting SD files into $OUTPUT_DIR"
+
+    run_modules
 }
 
 main
