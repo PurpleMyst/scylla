@@ -13,9 +13,3 @@ cp fusee-primary.bin "$OUTPUT_DIR/bootloader/payloads/"
 
 log-info "Create /atmosphere/kips"
 mkdir "$OUTPUT_DIR/atmosphere/kips/"
-
-log-info "Copying titles"
-cp -r "$CONFIG_DIR/atmosphere/titles"/* "$OUTPUT_DIR/atmosphere/titles/"
-
-log-info "Copying system_settings.ini"
-cp "$CONFIG_DIR/atmosphere/system_settings.ini" "$OUTPUT_DIR/atmosphere/"

@@ -13,6 +13,3 @@ rm "$OUTPUT_DIR/README.html"
 
 log-info "Removing /config/log.flag"
 rm "$OUTPUT_DIR/config/sys-clk/log.flag"
-
-log-info "Copying \$CONFIG_DIR/config/sys-clk/"
-cp -r "$CONFIG_DIR/config/sys-clk/" "$OUTPUT_DIR/config/"

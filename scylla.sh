@@ -245,7 +245,7 @@ run_modules() {
         fi
     done
 
-    cd "$ASSET_DIR" || die "\$ASSET_DIR pulled out from under our feet!"
+    pushd "$ASSET_DIR" &> /dev/null || die "\$ASSET_DIR pulled out from under our feet!"
     for module in "${sequential_modules[@]}"; do
         $module || exit 1
     done
@@ -259,6 +259,7 @@ run_modules() {
 
         exit 1
     fi
+    popd &> /dev/null || die "Old WD pulled out from under our feet"  # shut up shellcheck
 }
 
 # Create a fresh directory and return its real path
@@ -290,14 +291,16 @@ main() {
 
     OUTPUT_DIR=$(fresh-dir "sd-$(date '+%Y-%m-%d')")
     ASSET_DIR=$(realpath "$(mktemp -d -t scylla_assets.XXX)")
-    CONFIG_DIR=$(realpath config/)
     CACHE_DIR="${XDG_CACHE_DIR:-$HOME/.cache}/scylla"
     mkdir -p "$CACHE_DIR"
-    export CONFIG_DIR ASSET_DIR OUTPUT_DIR CACHE_DIR
+    export ASSET_DIR CACHE_DIR OUTPUT_DIR
 
     log-info "Putting SD files into $OUTPUT_DIR"
 
     run_modules
+
+    log-info "Copying template/*"
+    cp -r template/* "$OUTPUT_DIR/"
 }
 
 main

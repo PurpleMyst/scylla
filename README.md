@@ -17,6 +17,9 @@ Look in `modules/` and make the files you want to run executable, and the
 files you don't want to run non-executable. You can use `chmod +x FILE` or
 `chmod -x FILE` to do this.
 
+Anything you put in `template/` will be copied to the sd card's root folder
+after all modules have been ran.
+
 Then, just run `./scylla.sh`, wait a bit, and magically an
 `sd-YEAR-MONTH-DAY/` directory will have appeared.
 
