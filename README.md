@@ -43,6 +43,17 @@ If you're on a MacOS High Sierra (or higher than Sierra), `pup` segfaults if ins
 the method listed in the project's `README`. A simple `brew uninstall pup`
 then `brew install pup` installs a good version.
 
+## Module Creators
+
+- Thank you to rajkosto for ChoiDujourNX
+- Thank you to WerWolv for EdiZon
+- Thank you to XorTroll for Goldleaf
+- Thank you to jakibaki for hid_mitm, sys-netcheat and sys-ftpd
+- Thank you to blawar for incognito
+- Thank you to spacemeowx2 for ldn_mitm
+- Thank you to joel16 for NX-Shell
+- Thank you to the retronx team for sys-clk
+
 ## Special Thanks
 
 Special thanks to [sudot0ph](https://github.com/sudot0ph) for helping me out with this,
